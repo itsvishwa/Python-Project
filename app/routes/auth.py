@@ -123,7 +123,7 @@ def login():
 
 # Get access token using refresh token
 @bp.route("/auth/refresh", methods=["POST"])
-@jwt_required()
+@jwt_required(refresh=True)
 def refresh():
     """Endpoint to refresh token using refresh token in request header"""
     try:
@@ -131,7 +131,7 @@ def refresh():
         if not current_user_id:
             return error_response("Invalid token identity", 401)
 
-        new_access_token = create_access_token(identity=current_user_id)
+        new_access_token = create_access_token(identity=current_user_id, fresh=True)
 
         return jsonify(
             {
