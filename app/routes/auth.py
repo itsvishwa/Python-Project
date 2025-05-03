@@ -203,6 +203,41 @@ def change_password():
     return jsonify({"message": "Password changed successfully"})
 
 
+@bp.route("/auth/users", methods=["GET"])
+@jwt_required()
+def get_users():
+    """Endpoint to get a list of all users (Admin role required)"""
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    if not user:
+        return error_response("User not found", 404)
+
+    if user.role != "admin":
+        return error_response("Role admin required", 403)
+
+    # Pagination parameters
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+
+    # Fetch paginated users
+    users = User.query.paginate(page=page, per_page=per_page, error_out=False)
+
+    # Filter only required fields
+    users_list = [
+        {
+            "id": u.id,
+            "email": u.email,
+            "first_name": u.first_name,
+            "last_name": u.last_name,
+            "username": u.username
+        }
+        for u in users.items
+    ]
+
+    return jsonify(users_list), 200
+
+
 def validate_password_complexity(password):
     """
     Validate that a password meets complexity requirements
