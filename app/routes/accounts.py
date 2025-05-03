@@ -131,7 +131,8 @@ def update_account(account_id):
     data = request.get_json()
     
     account = Account.query.filter(
-        Account.id == account_id, 
+        Account.id == account_id,
+        Account.user_id == user_id,  
         Account.is_active == True
     ).first()
     
@@ -164,6 +165,7 @@ def delete_account(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
+        Account.user_id == user_id, 
         Account.is_active == True
     ).first()
     
