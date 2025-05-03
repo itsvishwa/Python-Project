@@ -136,7 +136,6 @@ def create_account():
         'label': account_name,
         'balance': 99.9,
         'message': 'Account created successfully',
-        'account': account_data,
     }), 201
 
 @bp.route('/<int:account_id>', methods=['PUT'])
@@ -167,10 +166,19 @@ def update_account(account_id):
         account.is_active = False
     
     db.session.commit()
+
+    account_dict = account.to_dict()
+    account_dict['id'] = account.id
+    formatted_account = {
+        "balance": round(float(account_dict.get('balance', 0.0)), 1),
+        "category": account_dict.get('account_type'),
+        "id": account_dict['id'],
+        "label": account_dict.get('account_name')
+    }
     
     return jsonify({
         'message': 'Account updated successfully',
-        'account_detail': account.to_dict()
+        'account_detail': formatted_account
     })
 
 @bp.route('/<int:account_id>', methods=['DELETE'])
