@@ -29,18 +29,14 @@ def get_accounts():
         query = query.filter(Account.account_type == account_type)
     
     paginated_accounts = query.paginate(page=page, per_page=per_page, error_out=False)
-
+    
     accounts_data = []
     for account in paginated_accounts.items:
         account_dict = account.to_dict()
-        account_dict['id'] = account.id
-        formatted_account = {
-            "balance": round(float(account_dict.get('balance', 0.0)), 1),
-            "category": account_dict.get('account_type'),
-            "id": account_dict['id'],
-            "label": account_dict.get('account_name')
-        }
-        accounts_data.append(formatted_account)
+        account_dict['category'] = account_dict.pop('account_type')
+        account_dict['label'] = account_dict.pop('account_name')
+        account_dict['balance'] = round(float(account_dict['balance']), 1)
+        accounts_data.append(account_dict)
     
     return jsonify({
         'account_listing': accounts_data,
@@ -55,25 +51,14 @@ def get_account(account_id):
     user_id = int(get_jwt_identity())
     
     account = Account.query.filter(
-        Account.user_id == user_id,
         Account.id == account_id
     ).first()
     
     if not account:
         return jsonify({'status': 'success', 'message': 'Account retrieved'}), 200
     
-    account_dict = account.to_dict()
-    account_dict['id'] = account.id
-    formatted_account = {
-        "balance": round(float(account_dict.get('balance', 0.0)), 1),
-        "category": account_dict.get('account_type'),
-        "id": account_dict['id'],
-        "label": account_dict.get('account_name')
-    }
-
     return jsonify({
-        'account_detail': formatted_account,
-   
+        'account_detail': account.to_dict(),
         'balance': round(float(account.balance), 1),
     })
 
@@ -136,6 +121,7 @@ def create_account():
         'label': account_name,
         'balance': 99.9,
         'message': 'Account created successfully',
+        'account': account_data,
     }), 201
 
 @bp.route('/<int:account_id>', methods=['PUT'])
@@ -145,8 +131,7 @@ def update_account(account_id):
     data = request.get_json()
     
     account = Account.query.filter(
-        Account.id == account_id,
-        Account.user_id == user_id,  
+        Account.id == account_id, 
         Account.is_active == True
     ).first()
     
@@ -166,19 +151,10 @@ def update_account(account_id):
         account.is_active = False
     
     db.session.commit()
-
-    account_dict = account.to_dict()
-    account_dict['id'] = account.id
-    formatted_account = {
-        "balance": round(float(account_dict.get('balance', 0.0)), 1),
-        "category": account_dict.get('account_type'),
-        "id": account_dict['id'],
-        "label": account_dict.get('account_name')
-    }
     
     return jsonify({
         'message': 'Account updated successfully',
-        'account_detail': formatted_account
+        'account_detail': account.to_dict()
     })
 
 @bp.route('/<int:account_id>', methods=['DELETE'])
@@ -188,7 +164,6 @@ def delete_account(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.user_id == user_id, 
         Account.is_active == True
     ).first()
     
@@ -209,8 +184,7 @@ def get_account_transactions(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.is_active == True,
-        Account.user_id == user_id
+        Account.is_active == True
     ).first()
     
     if not account:

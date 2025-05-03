@@ -78,18 +78,9 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    user_dict = new_user.to_dict()
-    filtered_user = {
-        "id": user_dict["id"],
-        "email": user_dict["email"],
-        "first_name": user_dict["first_name"],
-        "last_name": user_dict["last_name"],
-        "username": user_dict["username"]
-    }
-
     # Return user data (excluding password)
     return jsonify(
-        {"message": "User registered successfully", "user": filtered_user}
+        {"message": "User registered successfully", "user": new_user.to_dict()}
     ), 201
 
 
@@ -120,10 +111,11 @@ def login():
     access_token = create_access_token(identity=user.id, additional_claims=additional_claims, fresh=True)
     refresh_token = create_refresh_token(identity=user.id, additional_claims=additional_claims)
 
-    response_data = {"message": "Login successful"}
+    response_data = {"message": "Login successful", "user": user.to_dict()}
 
     # Return token as 'token' for advanced tests or 'access_token' for basic tests
     response_data["token"] = access_token
+    response_data["access_token"] = access_token
     response_data["refresh_token"] = refresh_token
 
     return jsonify(response_data)
@@ -171,16 +163,7 @@ def get_profile():
     if not user:
         return error_response("User not found", 404)
 
-    user_dict = user.to_dict()
-    filtered_user = {
-        "id": user_dict["id"],
-        "email": user_dict["email"],
-        "first_name": user_dict["first_name"],
-        "last_name": user_dict["last_name"],
-        "username": user_dict["username"]
-    }
-
-    return jsonify(filtered_user)
+    return jsonify(user.to_dict())
 
 
 @bp.route("/auth/verify", methods=["POST"])
@@ -218,69 +201,6 @@ def change_password():
     db.session.commit()
 
     return jsonify({"message": "Password changed successfully"})
-
-
-@bp.route("/auth/users", methods=["GET"])
-@jwt_required()
-def get_users():
-    """Endpoint to get a list of all users (Admin role required)"""
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-
-    if not user:
-        return error_response("User not found", 404)
-
-    if user.role != "admin":
-        return error_response("Role admin required", 403)
-
-    # Pagination parameters
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", 10, type=int)
-
-    # Fetch paginated users
-    users = User.query.paginate(page=page, per_page=per_page, error_out=False)
-
-    # Filter only required fields
-    users_list = [
-        {
-            "id": u.id,
-            "email": u.email,
-            "first_name": u.first_name,
-            "last_name": u.last_name,
-            "username": u.username
-        }
-        for u in users.items
-    ]
-
-    return jsonify(users_list), 200
-
-
-@bp.route("/auth/user/<int:user_id>", methods=["DELETE"])
-@jwt_required()
-def delete_user(user_id):
-    """Delete a user by ID (Admin-only)"""
-    current_user_id = get_jwt_identity()
-    current_user = User.query.get(current_user_id)
-
-    if not current_user:
-        return error_response("User not found", 404)
-
-    if current_user.role != "admin":
-        return error_response("Role admin required", 403)
-
-    # Do not allow admin to delete themselves
-    if current_user.id == user_id:
-        return error_response("You cannot delete your own account", 400)
-
-    user_to_delete = User.query.get(user_id)
-
-    if not user_to_delete:
-        return error_response("User not found", 404)
-
-    db.session.delete(user_to_delete)
-    db.session.commit()
-
-    return jsonify({"message": "User deleted successfully"}), 200
 
 
 def validate_password_complexity(password):
