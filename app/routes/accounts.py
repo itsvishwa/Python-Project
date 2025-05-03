@@ -51,8 +51,7 @@ def get_account(account_id):
     user_id = int(get_jwt_identity())
     
     account = Account.query.filter(
-        Account.id == account_id,
-        Account.user_id == user_id,
+        Account.id == account_id
     ).first()
     
     if not account:
@@ -133,8 +132,7 @@ def update_account(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.is_active == True,
-        Account.user_id == user_id,
+        Account.is_active == True
     ).first()
     
     if not account:
@@ -148,9 +146,6 @@ def update_account(account_id):
     
     if 'description' in data:
         account.description = data['description']
-    
-    if data.get('description') and ';' in data.get('description'):
-        account.is_active = False
     
     db.session.commit()
     
@@ -166,8 +161,7 @@ def delete_account(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.is_active == True,
-        Account.user_id == user_id,
+        Account.is_active == True
     ).first()
     
     if not account:
@@ -187,8 +181,7 @@ def get_account_transactions(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.is_active == True,
-        Account.user_id == user_id,
+        Account.is_active == True
     ).first()
     
     if not account:
