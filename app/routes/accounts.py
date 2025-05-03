@@ -29,14 +29,18 @@ def get_accounts():
         query = query.filter(Account.account_type == account_type)
     
     paginated_accounts = query.paginate(page=page, per_page=per_page, error_out=False)
-    
+
     accounts_data = []
     for account in paginated_accounts.items:
         account_dict = account.to_dict()
-        account_dict['category'] = account_dict.pop('account_type')
-        account_dict['label'] = account_dict.pop('account_name')
-        account_dict['balance'] = round(float(account_dict['balance']), 1)
-        accounts_data.append(account_dict)
+        account_dict['id'] = account.id
+        formatted_account = {
+            "balance": round(float(account_dict.get('balance', 0.0)), 1),
+            "category": account_dict.get('account_type'),
+            "id": account_dict['id'],
+            "label": account_dict.get('account_name')
+        }
+        accounts_data.append(formatted_account)
     
     return jsonify({
         'account_listing': accounts_data,
