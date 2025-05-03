@@ -78,9 +78,18 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
+    user_dict = new_user.to_dict()
+    filtered_user = {
+        "id": user_dict["id"],
+        "email": user_dict["email"],
+        "first_name": user_dict["first_name"],
+        "last_name": user_dict["last_name"],
+        "username": user_dict["username"]
+    }
+
     # Return user data (excluding password)
     return jsonify(
-        {"message": "User registered successfully", "user": new_user.to_dict()}
+        {"message": "User registered successfully", "user": filtered_user}
     ), 201
 
 
