@@ -143,6 +143,23 @@ def refresh():
         return error_response(f"Invalid token: {str(e)}", 401)
 
 
+@bp.route("/auth/users", methods=["GET"])
+@jwt_required()
+def get_all_users():
+    """
+    Retrieve a list of all users (Admin-only)
+    """
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "admin":
+        return jsonify({"message": "Role admin required"}), 403
+
+    users = User.query.all()
+    return jsonify([user.to_dict() for user in users]), 200
+
+
+
 @bp.route("/auth/logout", methods=["POST"])
 @jwt_required()
 def logout():
