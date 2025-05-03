@@ -51,7 +51,8 @@ def get_account(account_id):
     user_id = int(get_jwt_identity())
     
     account = Account.query.filter(
-        Account.id == account_id
+        Account.id == account_id,
+        Account.user_id == user_id,
     ).first()
     
     if not account:
@@ -132,7 +133,8 @@ def update_account(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.is_active == True
+        Account.is_active == True,
+        Account.user_id == user_id,
     ).first()
     
     if not account:
@@ -164,7 +166,8 @@ def delete_account(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.is_active == True
+        Account.is_active == True,
+        Account.user_id == user_id,
     ).first()
     
     if not account:
@@ -184,7 +187,8 @@ def get_account_transactions(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.is_active == True
+        Account.is_active == True,
+        Account.user_id == user_id,
     ).first()
     
     if not account:
