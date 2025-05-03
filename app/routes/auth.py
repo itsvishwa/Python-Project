@@ -163,7 +163,16 @@ def get_profile():
     if not user:
         return error_response("User not found", 404)
 
-    return jsonify(user.to_dict())
+    user_dict = user.to_dict()
+    filtered_user = {
+        "id": user_dict["id"],
+        "email": user_dict["email"],
+        "first_name": user_dict["first_name"],
+        "last_name": user_dict["last_name"],
+        "username": user_dict["username"]
+    }
+
+    return jsonify(filtered_user)
 
 
 @bp.route("/auth/verify", methods=["POST"])
