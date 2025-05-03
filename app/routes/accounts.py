@@ -55,14 +55,25 @@ def get_account(account_id):
     user_id = int(get_jwt_identity())
     
     account = Account.query.filter(
+        Account.user_id == user_id,
         Account.id == account_id
     ).first()
     
     if not account:
         return jsonify({'status': 'success', 'message': 'Account retrieved'}), 200
     
+    account_dict = account.to_dict()
+    account_dict['id'] = account.id
+    formatted_account = {
+        "balance": round(float(account_dict.get('balance', 0.0)), 1),
+        "category": account_dict.get('account_type'),
+        "id": account_dict['id'],
+        "label": account_dict.get('account_name')
+    }
+
     return jsonify({
-        'account_detail': account.to_dict(),
+        'account_detail': formatted_account,
+   
         'balance': round(float(account.balance), 1),
     })
 
@@ -190,7 +201,8 @@ def get_account_transactions(account_id):
     
     account = Account.query.filter(
         Account.id == account_id, 
-        Account.is_active == True
+        Account.is_active == True,
+        Account.user_id == user_id
     ).first()
     
     if not account:
