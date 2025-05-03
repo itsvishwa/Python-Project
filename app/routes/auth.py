@@ -159,6 +159,27 @@ def get_all_users():
     return jsonify([user.to_dict() for user in users]), 200
 
 
+@bp.route("/auth/user/<int:user_id>", methods=["DELETE"])
+@jwt_required()
+def delete_user(user_id):
+    """
+    Delete a user by ID (Admin-only)
+    """
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "admin":
+        return jsonify({"message": "Role admin required"}), 403
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"message": "User deleted successfully"}), 200
+
 
 @bp.route("/auth/logout", methods=["POST"])
 @jwt_required()
