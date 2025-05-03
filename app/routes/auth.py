@@ -120,11 +120,10 @@ def login():
     access_token = create_access_token(identity=user.id, additional_claims=additional_claims, fresh=True)
     refresh_token = create_refresh_token(identity=user.id, additional_claims=additional_claims)
 
-    response_data = {"message": "Login successful", "user": user.to_dict()}
+    response_data = {"message": "Login successful"}
 
     # Return token as 'token' for advanced tests or 'access_token' for basic tests
     response_data["token"] = access_token
-    response_data["access_token"] = access_token
     response_data["refresh_token"] = refresh_token
 
     return jsonify(response_data)
